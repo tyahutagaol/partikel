@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Edukasi Partikel By Tya</title>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+
+body{
+height:100vh;
+overflow:hidden;
+display:flex;
+justify-content:center;
+align-items:center;
+transition:background 2s;
+}
+
+/* BACKGROUND */
+.day{
+background:linear-gradient(270deg,#74ebd5,#9face6,#a1ffce);
+background-size:600% 600%;
+animation:bgMove 20s ease infinite;
+}
+
+.night{
+background:linear-gradient(270deg,#0f2027,#203a43,#2c5364);
+background-size:600% 600%;
+animation:bgMove 25s ease infinite;
+color:white;
+}
+
+.ocean{
+background:linear-gradient(180deg,#0093E9,#80D0C7);
+}
+
+@keyframes bgMove{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+}
+
+/* RAIN */
+.rain{
+position:absolute;
+top:-20px;
+font-size:18px;
+animation:rainFall linear infinite;
+pointer-events:none;
+}
+
+@keyframes rainFall{
+to{transform:translateY(110vh);}
+}
+
+/* TREES */
+.tree{
+position:absolute;
+bottom:0;
+font-size:80px;
+animation:sway 4s ease-in-out infinite;
+}
+
+@keyframes sway{
+0%{transform:rotate(-2deg);}
+50%{transform:rotate(2deg);}
+100%{transform:rotate(-2deg);}
+}
+
+/* CHARACTERS */
+.character{
+position:absolute;
+bottom:20px;
+font-size:65px;
+animation:walk linear infinite;
+}
+
+@keyframes walk{
+0%{left:-10%;}
+100%{left:110%;}
+}
+
+.fly{
+position:absolute;
+font-size:40px;
+animation:flyMove linear infinite;
+}
+
+@keyframes flyMove{
+0%{left:-10%;transform:translateY(0);}
+50%{transform:translateY(-20px);}
+100%{left:110%;}
+}
+
+/* CARD */
+.card{
+background:rgba(243, 122, 8, 0.93);
+padding:30px;
+border-radius:20px;
+width:420px;
+text-align:center;
+box-shadow:0 10px 40px rgba(0,0,0,.3);
+z-index:10;
+}
+
+.option{
+background:#d7f81e;
+margin:10px;
+padding:12px;
+border-radius:10px;
+cursor:pointer;
+transition:.3s;
+}
+
+.option:hover{
+background:#7c9ff7;
+transform:scale(1.05);
+}
+
+.nextBtn{
+margin-top:15px;
+padding:10px 20px;
+border:none;
+border-radius:10px;
+background:#4c6fff;
+color:white;
+cursor:pointer;
+font-weight:bold;
+display:none;
+}
+
+.switch{
+position:fixed;
+left:10px;
+top:10px;
+z-index:20;
+}
+
+/* LEADERBOARD */
+.leaderboard{
+position:fixed;
+right:15px;
+top:15px;
+background:rgba(93, 158, 243, 0.9);
+padding:15px;
+border-radius:15px;
+width:210px;
+box-shadow:0 8px 25px rgba(0,0,0,.2);
+z-index:20;
+}
+
+/* ================= SWEET ALERT PRO ================= */
+
+.swalPro{
+border-radius:20px!important;
+background:linear-gradient(135deg,#667eea,#764ba2)!important;
+color:white!important;
+box-shadow:0 15px 45px rgba(0,0,0,.4)!important;
+animation:popIn .4s ease;
+}
+
+.swalBenar{
+background:linear-gradient(135deg,#00c853,#69f0ae)!important;
+color:white!important;
+}
+
+.swalSalah{
+background:linear-gradient(135deg,#ff416c,#ff4b2b)!important;
+color:white!important;
+}
+
+.swalWin{
+background:linear-gradient(135deg,#FFD700,#FFA000)!important;
+color:#222!important;
+}
+
+@keyframes popIn{
+0%{transform:scale(.6);opacity:0;}
+100%{transform:scale(1);opacity:1;}
+}
+
+</style>
+</head>
+
+<body class="day">
+
+<button class="switch" onclick="switchMode()">🌍 Ganti Ekosistem</button>
+
+<div class="leaderboard">
+<b>🏆 Leaderboard</b>
+<ol id="leaderboardList"></ol>
+</div>
+
+<div class="tree" style="left:5%">🌳</div>
+<div class="tree" style="left:85%">🌴</div>
+
+<div class="character" style="animation-duration:18s;">👦🌱</div>
+<div class="character" style="animation-duration:25s;bottom:80px;">👧📘</div>
+
+<div class="fly" style="top:150px;animation-duration:20s;">🐦</div>
+<div class="fly" style="top:230px;animation-duration:25s;">🦋</div>
+
+<!-- LOGIN -->
+<div class="card" id="loginBox">
+<h2>🌿 Game Edukasi Partikel</h2>
+<input id="nama" placeholder="Nama pemain"
+style="padding:10px;width:100%;margin:10px 0;">
+<button onclick="login()">Mulai Game</button>
+</div>
+
+<!-- QUIZ -->
+<div class="card" id="quizBox" style="display:none;">
+<h3 id="question"></h3>
+<div id="options"></div>
+
+<button class="nextBtn" id="nextBtn" onclick="nextQuestion()">
+NEXT ➜
+</button>
+</div>
+
+<script>
+
+/* WEATHER */
+function createRain(){
+for(let i=0;i<40;i++){
+let drop=document.createElement("div");
+drop.className="rain";
+drop.innerHTML="💧";
+drop.style.left=Math.random()*100+"%";
+drop.style.animationDuration=(1+Math.random()*2)+"s";
+document.body.appendChild(drop);
+setTimeout(()=>drop.remove(),3000);
+}
+}
+
+setInterval(()=>{ if(Math.random()>0.5) createRain(); },20000);
+
+/* DAY NIGHT */
+function updateBackground(){
+let hour=new Date().getHours();
+document.body.className=(hour>=6&&hour<18)?"day":"night";
+}
+updateBackground();
+setInterval(updateBackground,60000);
+
+/* SWITCH MODE */
+let oceanMode=false;
+
+function switchMode(){
+oceanMode=!oceanMode;
+
+if(oceanMode){
+document.body.className="ocean";
+addFish();
+}else{
+updateBackground();
+removeFish();
+}
+}
+
+function addFish(){
+for(let i=0;i<6;i++){
+let fish=document.createElement("div");
+fish.className="fly fish";
+fish.innerHTML="🐠";
+fish.style.top=(300+i*40)+"px";
+fish.style.animationDuration=(15+i*3)+"s";
+document.body.appendChild(fish);
+}
+}
+
+function removeFish(){
+document.querySelectorAll(".fish").forEach(f=>f.remove());
+}
+
+/* SOUND */
+const benar=new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+const salah=new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+
+/* QUIZ DATA */
+const quiz=[
+
+{
+q:"Partikel terkecil penyusun suatu unsur yang masih memiliki sifat unsur tersebut adalah ....",
+o:["Molekul","Atom","Sel","Jaringan"],
+a:1
+},
+
+{
+q:"Berikut ini yang termasuk partikel subatom adalah ....",
+o:["atom, molekul, sel","proton, neutron, elektron","jaringan, organ, sistem organ","inti sel, sitoplasma, membran"],
+a:1
+},
+
+{
+q:"Nomor atom suatu unsur sama dengan jumlah ....",
+o:["neutron","proton","neutron dan elektron","nomor massa"],
+a:1
+},
+
+{
+q:"Gabungan dua atau lebih atom yang saling berikatan disebut ....",
+o:["ion","molekul","proton","inti atom"],
+a:1
+},
+
+{
+q:"Elektron memiliki muatan ....",
+o:["positif","negatif","netral","tidak bermuatan"],
+a:1
+},
+
+{
+q:"Jumlah proton = 8 dan neutron = 8. Nomor massa atom tersebut adalah ....",
+o:["8","16","64","0"],
+a:1
+},
+
+{
+q:"Bagian atom yang menjadi pusat massa atom disebut ....",
+o:["kulit atom","elektron","inti atom","molekul"],
+a:2
+},
+
+{
+q:"Contoh partikel penyusun makhluk hidup yang paling dasar adalah ....",
+o:["sel","jaringan","organ","sistem organ"],
+a:0
+},
+
+{
+q:"Suatu atom memiliki nomor atom 12. Jumlah proton pada atom tersebut adalah ....",
+o:["6","10","12","24"],
+a:2
+},
+
+{
+q:"Pernyataan yang benar tentang neutron adalah ....",
+o:[
+"bermuatan negatif dan berada di kulit atom",
+"bermuatan positif dan berada di inti atom",
+"tidak bermuatan dan berada di inti atom",
+"tidak bermuatan dan berada di kulit atom"
+],
+a:2
+}
+
+];
+
+let index=0;
+let pemain="";
+let skor=0;
+let lockAnswer=false;
+
+/* LOGIN */
+function login(){
+
+pemain=document.getElementById("nama").value.trim();
+
+if(pemain===""){
+Swal.fire({
+icon:'warning',
+title:'Masukkan Nama Pemain',
+text:'Nama diperlukan untuk leaderboard',
+confirmButtonText:'OK',
+customClass:{popup:'swalPro'}
+});
+return;
+}
+
+loginBox.style.display="none";
+quizBox.style.display="block";
+loadQuestion();
+}
+
+/* LOAD QUESTION */
+function loadQuestion(){
+
+lockAnswer=false;
+nextBtn.style.display="none";
+
+question.innerText=quiz[index].q;
+options.innerHTML="";
+
+quiz[index].o.forEach((opt,i)=>{
+options.innerHTML+=
+`<div class="option" onclick="check(this,${i})">${opt}</div>`;
+});
+}
+
+/* CHECK */
+function check(element,i){
+
+if(lockAnswer) return;
+lockAnswer=true;
+
+let semua=document.querySelectorAll(".option");
+
+semua.forEach((el,idx)=>{
+if(idx===quiz[index].a){
+el.style.background="#4CAF50";
+el.style.color="white";
+}
+});
+
+if(i!==quiz[index].a){
+
+element.style.background="#e53935";
+element.style.color="white";
+salah.play();
+
+Swal.fire({
+icon:'error',
+title:'Oops! Salah',
+text:'Coba lebih teliti 😊',
+timer:1200,
+showConfirmButton:false,
+customClass:{popup:'swalSalah'}
+});
+
+}else{
+
+benar.play();
+skor+=10;
+
+Swal.fire({
+icon:'success',
+title:'Jawaban Benar!',
+text:'+10 Poin 🎉',
+timer:1200,
+showConfirmButton:false,
+customClass:{popup:'swalBenar'}
+});
+}
+
+nextBtn.style.display="inline-block";
+}
+
+/* FINISH GAME */
+function finishGame(){
+
+let data=JSON.parse(localStorage.getItem("leaderboard"))||[];
+
+data.push({nama:pemain,skor:skor});
+data.sort((a,b)=>b.skor-a.skor);
+
+localStorage.setItem("leaderboard",JSON.stringify(data));
+showLeaderboard();
+}
+
+/* SHOW LEADERBOARD */
+function showLeaderboard(){
+
+let data=JSON.parse(localStorage.getItem("leaderboard"))||[];
+leaderboardList.innerHTML="";
+
+data.slice(0,5).forEach(p=>{
+leaderboardList.innerHTML+=`<li>${p.nama} - ${p.skor}</li>`;
+});
+
+Swal.fire({
+title:"🏆 GAME SELESAI!",
+html:`<h2 style="margin:10px 0">${skor} Poin</h2>
+<p>Hebat, ${pemain}!</p>`,
+confirmButtonText:'Main Lagi',
+customClass:{popup:'swalWin'}
+}).then(()=>{
+location.reload();
+});
+}
+
+/* NEXT QUESTION */
+function nextQuestion(){
+
+index++;
+
+if(index<quiz.length){
+loadQuestion();
+}else{
+finishGame();
+}
+}
+
+</script>
+
+</body>
+</html>
